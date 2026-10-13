@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model accesoqr {
+  id_accesoQR   Int        @id @default(autoincrement())
+  id_usuario    Int?
+  fecha_acceso  DateTime   @db.DateTime(0)
+  id_tipoAcceso Int
+  tipoacceso    tipoacceso @relation(fields: [id_tipoAcceso], references: [id_tipoAcceso], onUpdate: Restrict, map: "accesoqr_ibfk_1")
+
+  @@index([id_tipoAcceso], map: "id_tipoAcceso")
+}
+
+model categoria {
+  id_categoria     Int         @id @default(autoincrement())
+  nombre_categoria String      @db.VarChar(255)
+  productos        productos[]
+}
+
+model comprobante {
+  id_comprobante     Int      @id @default(autoincrement())
+  nombre_comprobante String   @db.VarChar(255)
+  ventas             ventas[]
+}
+
+model detalleventa {
+  id_detalleVenta Int       @id @default(autoincrement())
+  id_venta        Int
+  id_producto     Int
+  cantidad        Int
+  subtotal        Decimal   @db.Decimal(10, 2)
+  productos       productos @relation(fields: [id_producto], references: [id_producto], onUpdate: Restrict, map: "detalleventa_ibfk_1")
+  ventas          ventas    @relation(fields: [id_venta], references: [id_venta], onUpdate: Restrict, map: "detalleventa_ibfk_2")
+
+  @@index([id_producto], map: "id_producto")
+  @@index([id_venta], map: "id_venta")
+}
+
+model metodopago {
+  id_metodoPago     Int      @id @default(autoincrement())
+  nombre_metodoPago String   @db.VarChar(255)
+  ventas            ventas[]
+}
+
+model productos {
+  id_producto         Int                   @id @default(autoincrement())
+  nombre_producto     String                @db.VarChar(255)
+  descripcion         String?               @db.Text
+  descripcion_corta   String?               @db.VarChar(160)
+  tags_seo            String?               @db.Text
+  seo_generado_en     DateTime?             @db.DateTime(0)
+  id_categoria        Int
+  stock               Int
+  precio              Decimal               @db.Decimal(10, 2)
+  descuento           Decimal               @default(0.00) @db.Decimal(5, 2)
+  alergenoproducto    alergenoproducto[]
+  detalleventa        detalleventa[]
+  ingredienteproducto ingredienteproducto[]
+  categoria           categoria             @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "productos_ibfk_1")
+
+  @@index([id_categoria], map: "id_categoria")
+}
+
+model tipoacceso {
+  id_tipoAcceso     Int        @id @default(autoincrement())
+  nombre_tipoAcceso String     @db.Char(3)
+  accesoqr          accesoqr[]
+}
+
+model usuarios {
+  id_usuario         Int                 @id @default(autoincrement())
+  rol_usuario        Int
+  nombre_usuario     String              @db.VarChar(255)
+  correo_usuario     String              @unique(map: "correo_usuario") @db.VarChar(255)
+  clave_usuario      String              @db.VarChar(255)
+  telefono_usuario   String?             @db.Char(12)
+  direccion_usuario  String?             @db.VarChar(255)
+  fecha_registro     DateTime            @db.DateTime(0)
+  contador_bubbleTea Int
+  regalo_bubbleTea   Int?                @default(0)
+  score              Int?                @default(0)
+  tickets            tickets[]
+  ventas             ventas[]
+  ia_conversaciones  ia_conversaciones[]
+  email_eventos      email_eventos[]
+  reservas           reservas[]
+}
+
+model ventas {
+  id_venta       Int            @id @default(autoincrement())
+  id_usuario     Int
+  fecha_venta    DateTime       @db.DateTime(0)
+  total          Decimal        @db.Decimal(10, 2)
+  id_metodoPago  Int
+  id_comprobante Int
+  estado         String?        @default("por confirmar") @db.VarChar(255)
+  metodo_entrega String?        @default("pickup") @db.VarChar(20)
+  direccion_entrega      String?   @db.VarChar(255)
+  referencia_entrega     String?   @db.VarChar(255)
+  repartidor             String?   @db.VarChar(255)
+  telefono_repartidor    String?   @db.VarChar(30)
+  tiempo_estimado_min    Int?
+  entregado_en           DateTime? @db.DateTime(0)
+  detalleventa   detalleventa[]
+  usuarios       usuarios       @relation(fields: [id_usuario], references: [id_usuario], onUpdate: Restrict, map: "ventas_ibfk_1")
+  metodopago     metodopago     @relation(fields: [id_metodoPago], references: [id_metodoPago], onUpdate: Restrict, map: "ventas_ibfk_2")
+  comprobante    comprobante    @relation(fields: [id_comprobante], references: [id_comprobante], onUpdate: Restrict, map: "ventas_ibfk_3")
+
+  @@index([id_comprobante], map: "id_comprobante")
+  @@index([id_metodoPago], map: "id_metodoPago")
+  @@index([id_usuario], map: "id_usuario")
+}
+
+model alergenoproducto {
+  id_alergeno Int       @id @default(autoincrement())
+  id_producto Int
+  nombre      String    @db.VarChar(255)
+  productos   productos @relation(fields: [id_producto], references: [id_producto], onDelete: Cascade, onUpdate: NoAction, map: "alergeno_ibfk_1")
+
+  @@index([id_producto], map: "id_producto")
+}
+
+model ingredienteproducto {
+  id_ingrediente Int       @id @default(autoincrement())
+  id_producto    Int
+  nombre         String    @db.VarChar(255)
+  productos      productos @relation(fields: [id_producto], references: [id_producto], onDelete: Cascade, onUpdate: NoAction, map: "ingrediente_ibfk_1")
+
+  @@index([id_producto], map: "id_producto")
+}
+
+model tickets {
+  id_ticket     Int       @id @default(autoincrement())
+  nombre_ticket String    @db.VarChar(255)
+  codigo_ticket String?   @unique(map: "unique_codigo_ticket") @db.VarChar(30)
+  descuento     Decimal   @default(0.00) @db.Decimal(5, 2)
+  usado         Boolean   @default(false)
+  id_usuario    Int?
+  usuarios      usuarios? @relation(fields: [id_usuario], references: [id_usuario], onUpdate: Restrict, map: "tickets_ibfk_1")
+
+  @@index([id_usuario], map: "tickets_ibfk_1")
+}
+
+model reseteo_semanal {
+  id_reseteo         Int      @id @default(autoincrement())
+  fecha_ultimo_reset DateTime @db.DateTime(0)
+  semana_anio        Int
+  anio               Int
+}
+
+/// Registro de conversaciones para medir resolución en el primer contacto,
+/// tiempo de respuesta e intenciones más frecuentes del asistente.
+model ia_conversaciones {
+  id_conversacion Int       @id @default(autoincrement())
+  id_usuario      Int?
+  mensaje_usuario String    @db.Text
+  respuesta_ia    String    @db.Text
+  intencion       String    @db.VarChar(80)
+  confianza       Decimal?  @db.Decimal(5, 2)
+  resuelta        Boolean   @default(false)
+  canal           String    @default("web") @db.VarChar(30)
+  fecha           DateTime  @default(now()) @db.DateTime(0)
+  usuarios        usuarios? @relation(fields: [id_usuario], references: [id_usuario], onUpdate: Restrict, map: "ia_conversaciones_usuario_fk")
+
+  @@index([id_usuario], map: "ia_conversaciones_id_usuario_idx")
+  @@index([fecha], map: "ia_conversaciones_fecha_idx")
+  @@index([resuelta], map: "ia_conversaciones_resuelta_idx")
+}
+
+/// Feedback del cliente (reseñas, quejas, sugerencias y encuestas NPS).
+model feedback {
+  id_feedback    Int       @id @default(autoincrement())
+  nombre         String    @db.VarChar(255)
+  correo         String?   @db.VarChar(255)
+  mensaje        String    @db.Text
+  canal          String    @default("web") @db.VarChar(30)
+  sentimiento    String    @default("neutro") @db.VarChar(20)
+  categoria      String    @default("otros") @db.VarChar(40)
+  criticidad     Int       @default(1)
+  nps            Int?
+  atendido       Boolean   @default(false)
+  respuesta      String?   @db.Text
+  fecha_creacion DateTime  @default(now()) @db.DateTime(0)
+  fecha_atencion DateTime?
+
+  @@index([atendido], map: "feedback_atendido_idx")
+  @@index([fecha_creacion], map: "feedback_fecha_idx")
+  @@index([sentimiento], map: "feedback_sentimiento_idx")
+}
+
+/// Eventos de los correos de bienvenida para medir apertura y clics.
+model email_eventos {
+  id_evento      Int       @id @default(autoincrement())
+  id_usuario     Int?
+  correo         String    @db.VarChar(255)
+  tipo           String    @default("bienvenida") @db.VarChar(40)
+  token          String    @unique(map: "email_eventos_token_uq") @db.VarChar(80)
+  fecha_envio    DateTime  @default(now()) @db.DateTime(0)
+  fecha_apertura DateTime?
+  fecha_clic     DateTime?
+  usuarios       usuarios? @relation(fields: [id_usuario], references: [id_usuario], onUpdate: Restrict, map: "email_eventos_usuario_fk")
+
+  @@index([correo], map: "email_eventos_correo_idx")
+}
+
+/// Solicitudes de reserva que puede capturar el asistente o el formulario web.
+model reservas {
+  id_reserva    Int       @id @default(autoincrement())
+  id_usuario    Int?
+  nombre        String    @db.VarChar(255)
+  correo        String?   @db.VarChar(255)
+  telefono      String?   @db.VarChar(30)
+  fecha_reserva DateTime  @db.DateTime(0)
+  personas      Int
+  salon         String?   @db.VarChar(80)
+  estado        String    @default("pendiente") @db.VarChar(30)
+  notas         String?   @db.Text
+  creado_en     DateTime  @default(now()) @db.DateTime(0)
+  usuarios      usuarios? @relation(fields: [id_usuario], references: [id_usuario], onUpdate: Restrict, map: "reservas_usuario_fk")
+
+  @@index([fecha_reserva], map: "reservas_fecha_idx")
+  @@index([estado], map: "reservas_estado_idx")
+  @@index([id_usuario], map: "reservas_id_usuario_idx")
+}
