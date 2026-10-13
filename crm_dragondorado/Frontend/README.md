@@ -71,3 +71,15 @@ export default defineConfig([
   },
 ])
 ```
+## 📡 Arquitectura IoT (Avance 3)
+
+El sistema de gestión de delivery integra hardware IoT para trazabilidad en tiempo real:
+
+- **Módulo GPS Tracker (ESP32 + Neo-6M):** Instalado en motocicletas para transmitir ubicación al broker MQTT.
+- **Tablet táctil KDS:** En cocina para visualizar y despachar pedidos.
+- **Sensor de temperatura (DS18B20):** En cámaras frigoríficas. Alerta al dashboard si la temperatura supera los 4°C.
+- **Impresora térmica POS IoT:** En caja para imprimir comandas automáticamente.
+- **Smart Button Beacon IoT:** En zona de empaque para notificar la salida del pedido.
+
+### Acceso al Dashboard IoT
+Los administradores pueden monitorear la telemetría accediendo a la ruta `/dashboard/iot`.

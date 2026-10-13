@@ -5,7 +5,7 @@ import { UserProvider } from "@/lib/user-context";
 import { VentaProvider } from "@/lib/venta-context";
 import { ProductProvider } from "@/lib/product-context";
 import { ToastProvider } from "@/components/ui/ToastProvider";
-import IoTDashboard from "./IoTDashboard";
+import DashboardIoT from "./DashboardIoT";
 
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
@@ -38,7 +38,7 @@ function App() {
         >
           ⬅️ Volver a la Web del Chifa
         </button>
-        <IoTDashboard />
+        <DashboardIoT />
       </div>
     );
   }
